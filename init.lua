@@ -26,7 +26,7 @@ local config = {
   },
 
   -- Set colorscheme to use
-  colorscheme = "default_theme",
+  colorscheme = "nordfox",
 
   -- Add highlight groups in any theme
   highlights = {
@@ -74,11 +74,11 @@ local config = {
     "██   ██      ██    ██    ██   ██ ██    ██",
     "██   ██ ███████    ██    ██   ██  ██████",
     " ",
-    "    ███    ██ ██    ██ ██ ███    ███",
-    "    ████   ██ ██    ██ ██ ████  ████",
-    "    ██ ██  ██ ██    ██ ██ ██ ████ ██",
-    "    ██  ██ ██  ██  ██  ██ ██  ██  ██",
-    "    ██   ████   ████   ██ ██      ██",
+    "    ███    ██ ██    ██ ██ ███    ███",
+    "    ████   ██ ██    ██ ██ ████  ████",
+    "    ██ ██  ██ ██    ██ ██ ██ ████ ██",
+    "    ██  ██ ██  ██  ██  ██ ██  ██  ██",
+    "    ██   ████   ████   ██ ██      ██",
   },
 
   -- Default theme configuration
@@ -173,6 +173,15 @@ local config = {
       --     },
       --   },
       -- },
+      -- solargraph = {
+      --   settings = {
+      --     solargraph = {
+      --       diagnostics = true,
+      --     },
+      --   },
+      --   filetypes = { "ruby" },
+      --   on_attach = function(client) client.server_capabilities.document_formatting = false end,
+      -- },
     },
   },
 
@@ -192,6 +201,11 @@ local config = {
       ["<leader>bt"] = { "<cmd>BufferLineSortByTabs<cr>", desc = "Sort by tabs" },
       -- quick save
       -- ["<C-s>"] = { ":w!<cr>", desc = "Save File" },  -- change description but the same command
+
+      --Sid Mappings
+      ["<S-e>"] = { ":m-2<CR>==" },
+      ["<S-n>"] = { ":m+1<CR>==" },
+      ["<CR>"] = { "o<ESC>" },
     },
     t = {
       -- setting a mapping to false will disable it
@@ -223,19 +237,25 @@ local config = {
       --     require("lsp_signature").setup()
       --   end,
       -- },
+      {
+        "kylechui/nvim-surround",
+        config = function() require("nvim-surround").setup {} end,
+      },
+      { "EdenEast/nightfox.nvim" },
     },
     -- All other entries override the require("<key>").setup({...}) call for default plugins
     ["null-ls"] = function(config) -- overrides `require("null-ls").setup(config)`
       -- config variable is the default configuration table for the setup functino call
-      -- local null_ls = require "null-ls"
+      local null_ls = require "null-ls"
 
       -- Check supported formatters and linters
       -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/formatting
       -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
       config.sources = {
         -- Set a formatter
-        -- null_ls.builtins.formatting.stylua,
-        -- null_ls.builtins.formatting.prettier,
+        null_ls.builtins.formatting.rubocop,
+        null_ls.builtins.formatting.stylua,
+        null_ls.builtins.formatting.prettier,
       }
       return config -- return final config table
     end,
