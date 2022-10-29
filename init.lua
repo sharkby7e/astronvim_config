@@ -28,32 +28,32 @@ local config = {
   -- Set colorscheme to use
   colorscheme = "nordfox",
 
-  -- Add highlight groups in any theme
+  -- Override highlight groups in any theme
   highlights = {
-    -- init = { -- this table overrides highlights in all themes
-    --   Normal = { bg = "#000000" },
-    -- }
-    -- duskfox = { -- a table of overrides/changes to the duskfox theme
+    -- duskfox = { -- a table of overrides/changes to the default
     --   Normal = { bg = "#000000" },
     -- },
+    default_theme = function(highlights) -- or a function that returns a new table of colors to set
+      local C = require "default_theme.colors"
+
+      -- New approach instead of diagnostic_style
+      highlights.DiagnosticError.italic = true
+      highlights.DiagnosticHint.italic = true
+      highlights.DiagnosticInfo.italic = true
+      highlights.DiagnosticWarn.italic = true
+
+      highlights.Normal = { fg = C.fg, bg = C.bg }
+      return highlights
+    end,
   },
 
   -- set vim options here (vim.<first_key>.<second_key> =  value)
   options = {
     opt = {
-      -- set to true or false etc.
       relativenumber = true, -- sets vim.opt.relativenumber
-      number = true, -- sets vim.opt.number
-      spell = true, -- sets vim.opt.spell
-      signcolumn = "auto", -- sets vim.opt.signcolumn to auto
-      wrap = false, -- sets vim.opt.wrap
     },
     g = {
       mapleader = " ", -- sets vim.g.mapleader
-      cmp_enabled = true, -- enable completion at start
-      autopairs_enabled = true, -- enable autopairs at start
-      diagnostics_enabled = true, -- enable diagnostics at start
-      status_diagnostics_enabled = true, -- enable diagnostics in statusline
     },
   },
   -- If you need more control, you can use the function()...end notation
@@ -88,19 +88,6 @@ local config = {
       fg = "#abb2bf",
       bg = "#1e222a",
     },
-    highlights = function(hl) -- or a function that returns a new table of colors to set
-      local C = require "default_theme.colors"
-
-      hl.Normal = { fg = C.fg, bg = C.bg }
-
-      -- New approach instead of diagnostic_style
-      hl.DiagnosticError.italic = true
-      hl.DiagnosticHint.italic = true
-      hl.DiagnosticInfo.italic = true
-      hl.DiagnosticWarn.italic = true
-
-      return hl
-    end,
     -- enable or disable highlighting for extra plugins
     plugins = {
       aerial = true,
@@ -123,7 +110,7 @@ local config = {
     },
   },
 
-  -- Diagnostics configuration (for vim.diagnostics.config({...})) when diagnostics are on
+  -- Diagnostics configuration (for vim.diagnostics.config({...}))
   diagnostics = {
     virtual_text = true,
     underline = true,
@@ -134,15 +121,6 @@ local config = {
     -- enable servers that you already have installed without mason
     servers = {
       -- "pyright"
-    },
-    formatting = {
-      format_on_save = true, -- enable or disable auto formatting on save
-      disabled = { -- disable formatting capabilities for the listed clients
-        -- "sumneko_lua",
-      },
-      -- filter = function(client) -- fully override the default formatting function
-      --   return true
-      -- end
     },
     -- easily add or disable built in mappings added during LSP attaching
     mappings = {
@@ -173,15 +151,6 @@ local config = {
       --     },
       --   },
       -- },
-      -- solargraph = {
-      --   settings = {
-      --     solargraph = {
-      --       diagnostics = true,
-      --     },
-      --   },
-      --   filetypes = { "ruby" },
-      --   on_attach = function(client) client.server_capabilities.document_formatting = false end,
-      -- },
     },
   },
 
@@ -202,7 +171,7 @@ local config = {
       -- quick save
       -- ["<C-s>"] = { ":w!<cr>", desc = "Save File" },  -- change description but the same command
 
-      --Sid Mappings
+      -- Sid mappings
       ["<S-e>"] = { ":m-2<CR>==" },
       ["<S-n>"] = { ":m+1<CR>==" },
       ["<CR>"] = { "o<ESC>" },
@@ -230,6 +199,14 @@ local config = {
       --   end,
       -- },
 
+      -- nvim surround
+      {
+        "kylechui/nvim-surround",
+        config = function() require("nvim-surround").setup {} end,
+      },
+      -- Colorschemes
+      { "EdenEast/nightfox.nvim" },
+
       -- We also support a key value style plugin definition similar to NvChad:
       -- ["ray-x/lsp_signature.nvim"] = {
       --   event = "BufRead",
@@ -237,38 +214,34 @@ local config = {
       --     require("lsp_signature").setup()
       --   end,
       -- },
-      {
-        "kylechui/nvim-surround",
-        config = function() require("nvim-surround").setup {} end,
-      },
-      { "EdenEast/nightfox.nvim" },
     },
     -- All other entries override the require("<key>").setup({...}) call for default plugins
     ["null-ls"] = function(config) -- overrides `require("null-ls").setup(config)`
       -- config variable is the default configuration table for the setup functino call
       local null_ls = require "null-ls"
-
       -- Check supported formatters and linters
       -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/formatting
       -- https://github.com/jose-elias-alvarez/null-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
       config.sources = {
-        -- Set a formatter
+        -- Set a formatter that is manually installed
         null_ls.builtins.formatting.rubocop,
-        null_ls.builtins.formatting.stylua,
         null_ls.builtins.formatting.prettier,
       }
-      return config -- return final config table
+      return config -- return final config table to use in require("null-ls").setup(config)
     end,
     treesitter = { -- overrides `require("treesitter").setup(...)`
-      -- ensure_installed = { "lua" },
+      ensure_installed = { "lua" },
     },
     -- use mason-lspconfig to configure LSP installations
     ["mason-lspconfig"] = { -- overrides `require("mason-lspconfig").setup(...)`
-      -- ensure_installed = { "sumneko_lua" },
+      ensure_installed = { "sumneko_lua" },
     },
-    -- use mason-null-ls to configure Formatters/Linter installation for null-ls sources
+    -- use mason-null-ls to install and setup configure null-ls sources
     ["mason-null-ls"] = { -- overrides `require("mason-null-ls").setup(...)`
-      -- ensure_installed = { "prettier", "stylua" },
+      ensure_installed = { "stylua" },
+    },
+    packer = { -- overrides `require("packer").setup(...)`
+      compile_path = vim.fn.stdpath "data" .. "/packer_compiled.lua",
     },
   },
 
@@ -278,7 +251,7 @@ local config = {
     vscode_snippet_paths = {},
     -- Extend filetypes
     filetype_extend = {
-      -- javascript = { "javascriptreact" },
+      javascript = { "javascriptreact" },
     },
   },
 
@@ -317,6 +290,16 @@ local config = {
   -- augroups/autocommands and custom filetypes also this just pure lua so
   -- anything that doesn't fit in the normal config locations above can go here
   polish = function()
+    -- Set key binding
+    -- Set autocommands
+    vim.api.nvim_create_augroup("packer_conf", { clear = true })
+    vim.api.nvim_create_autocmd("BufWritePost", {
+      desc = "Sync packer after modifying plugins.lua",
+      group = "packer_conf",
+      pattern = "plugins.lua",
+      command = "source <afile> | PackerSync",
+    })
+
     -- Set up custom filetypes
     -- vim.filetype.add {
     --   extension = {
