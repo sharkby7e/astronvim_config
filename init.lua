@@ -175,6 +175,9 @@ local config = {
       ["<S-e>"] = { ":m-2<CR>==" },
       ["<S-n>"] = { ":m+1<CR>==" },
       ["<CR>"] = { "o<ESC>" },
+      ["m"] = { "N" },
+      ["j"] = { "k" },
+      ["k"] = { "j" },
     },
     t = {
       -- setting a mapping to false will disable it
